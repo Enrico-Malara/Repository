@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Random Select Drawing Idea</title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#8b5cf6;--muted:#94a3b8;--glass:rgba(255,255,255,0.04)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:#e6eef8;background:linear-gradient(180deg,#001219 0%, #02122b 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wrap{width:100%;max-width:980px;background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(2,6,23,0.6);backdrop-filter: blur(6px)}
+    header{display:flex;justify-content:space-between;align-items:center;gap:16px}
+    h1{margin:0;font-size:20px;letter-spacing:0.2px}
+    p.lead{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .main{display:grid;grid-template-columns:1fr 360px;gap:20px;margin-top:20px}
+    .left{padding:18px;background:var(--glass);border-radius:12px;min-height:300px}
+    .right{padding:18px;background:linear-gradient(180deg,rgba(255,255,255,0.015),transparent);border-radius:12px}
+    .result{font-size:20px;padding:18px;border-radius:10px;background:linear-gradient(90deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));min-height:86px;display:flex;align-items:center;justify-content:center;text-align:center}
+    .controls{display:flex;gap:10px;margin-top:12px}
+    button{border:0;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),#06b6d4);color:white}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    .list{max-height:420px;overflow:auto;padding:10px;border-radius:8px;background:#031428;margin-top:12px}
+    .list ol{margin:0;padding:0 0 0 18px;color:#cfe6ff}
+    .footer{margin-top:14px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;align-items:center}
+    .small{font-size:12px;color:var(--muted)}
+    .history{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:13px}
+    .search{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+    @media (max-width:880px){.main{grid-template-columns:1fr;}.right{order:2}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>100 Ambienti — Scegli uno a caso</h1>
+        <p class="lead">Clicca <strong>Scegli</strong> per ricevere un'idea da disegnare. Premi "Genera ora" per provarne un'altra.</p>
+      </div>
+      <div class="small">Creato per te • 🎨</div>
+    </header>
+
+    <div class="main">
+      <section class="left">
+        <div class="result" id="result">Premi qui a destra per iniziare</div>
+
+        <div class="controls">
+          <button class="btn-primary" id="pick">Scegli</button>
+          <button class="btn-ghost" id="surprise">Scegli adesso (auto)</button>
+          <button class="btn-ghost" id="copy">Copia</button>
+          <button class="btn-ghost" id="download">Scarica .txt</button>
+        </div>
+
+        <div class="history" id="history"></div>
+
+        <div class="footer">
+          <div class="small">Non ripete automaticamente (ma puoi rieseguire)</div>
+          <div class="small"><label><input type="checkbox" id="noRepeats"> Evita ripetizioni</label></div>
+        </div>
+      </section>
+
+      <aside class="right">
+        <input id="search" class="search" placeholder="Cerca nella lista... (es. 'fantasy', 'città')">
+        <div class="list" id="list">
+          <ol id="items"></ol>
+        </div>
+        <div style="margin-top:10px;color:var(--muted);font-size:13px">Suggerimento: usa il tasto <strong>Scegli</strong> o la barra spaziatrice per generare rapidamente.</div>
+      </aside>
+    </div>
+  </div>
+
+  <footer>
+  © 2025 Enrico Malara. Tutti i diritti riservati.
+  </footer> 
+
+  <script>
+    const ambienti = [
+"Foresta pluviale","Deserto con dune","Montagna innevata","Cascata tropicale","Spiaggia al tramonto","Bosco autunnale","Lago in montagna","Prateria con fiori selvatici","Grotta illuminata da cristalli","Isola vulcanica",
+"Strada di notte sotto la pioggia","Piazza italiana con caffè all’aperto","Metropoli futuristica","Stazione ferroviaria antica","Quartiere industriale abbandonato","Mercato asiatico affollato","Grattacieli riflessi sull’acqua","Città sommersa","Viale alberato in autunno","Ponte sospeso su un fiume",
+"Camera da letto vintage","Cucina rustica di campagna","Biblioteca antica","Laboratorio di un inventore","Soggiorno moderno con vista panoramica","Mansarda con lucernario","Sala da pranzo vittoriana","Corridoio di un castello","Serra piena di piante","Capanna nel bosco",
+"Tempio giapponese","Piramide egizia","Colosseo di Roma","Mercato medievale","Monastero tibetano","Villaggio vichingo","Città maya nella giungla","Fortezza araba nel deserto","Teatro greco antico","Borgo rinascimentale",
+"Torre di un mago","Foresta incantata","Caverna del drago","Villaggio elfico","Cittadella volante","Biblioteca magica infinita","Tempio sommerso con statue antiche","Taverna di avventurieri","Ponte di cristallo","Campo di battaglia epico",
+"Base spaziale su Marte","Città cyberpunk","Stazione orbitale","Pianeta alieno con flora luminosa","Laboratorio di robotica","Tunnel ipertecnologico","Astronave in viaggio interstellare","Porto spaziale","Laboratorio criogenico","Colonia sottomarina del futuro",
+"Castello abbandonato","Cimitero nebbioso","Cattedrale gotica","Casa infestata","Villaggio sotto la luna piena","Bosco con alberi spettrali","Cripta sotterranea","Torre del vampiro","Strada vuota con lampioni tremolanti","Città distrutta dopo un’apocalisse",
+"Città capovolta","Paesaggio dentro una bolla","Scala infinita","Mare fatto di nuvole","Case fluttuanti","Mondo dentro uno specchio","Deserto con orologi fusi","Albero con porte che conducono altrove","Biblioteca nel cielo","Pianeta con geometrie impossibili",
+"Scuola durante la ricreazione","Ufficio moderno","Palestra o dojo","Parco giochi","Fermata dell’autobus","Centro commerciale","Sala cinematografica","Stazione della metropolitana","Cucina in disordine dopo una festa","Studio d’artista",
+"Savana africana","Giungla amazzonica","Barriera corallina","Polo Nord con orsi","Nido di aquile su una scogliera","Prateria con cavalli al galoppo","Bosco con cervi e volpi","Canyon con aquile in volo","Oceano in tempesta","Notte stellata in un campo con lucciole"
+    ];
+
+    const resultEl = document.getElementById('result');
+    const itemsEl = document.getElementById('items');
+    const pickBtn = document.getElementById('pick');
+    const surpriseBtn = document.getElementById('surprise');
+    const copyBtn = document.getElementById('copy');
+    const downloadBtn = document.getElementById('download');
+    const historyEl = document.getElementById('history');
+    const noRepeatsCheckbox = document.getElementById('noRepeats');
+    const searchInput = document.getElementById('search');
+
+    let used = [];
+
+    function renderList(filter=''){
+      itemsEl.innerHTML='';
+      ambienti.forEach((a,i)=>{
+        if(!filter || a.toLowerCase().includes(filter.toLowerCase())){
+          const li = document.createElement('li');
+          li.textContent = a;
+          itemsEl.appendChild(li);
+        }
+      });
+    }
+
+    function pickRandom(){
+      const avail = noRepeatsCheckbox.checked ? ambienti.filter(a=>!used.includes(a)) : ambienti.slice();
+      if(avail.length===0){
+        resultEl.textContent = 'Hai esaurito tutte le opzioni! Disattiva "Evita ripetizioni" o usa il pulsante "Reset".';
+        return;
+      }
+      const i = Math.floor(Math.random()*avail.length);
+      const choice = avail[i];
+      used.push(choice);
+      showChoice(choice);
+    }
+
+    function showChoice(text){
+      resultEl.innerHTML = '';
+      const span = document.createElement('div');
+      span.style.fontWeight='700';
+      span.style.fontSize='18px';
+      span.textContent = text;
+      resultEl.appendChild(span);
+
+      const time = document.createElement('div');
+      time.style.fontSize='12px';
+      time.style.marginTop='6px';
+      time.style.color='var(--muted)';
+      time.textContent = new Date().toLocaleString();
+      resultEl.appendChild(time);
+
+      const chip = document.createElement('div');
+      chip.className='chip';
+      chip.textContent = text;
+      historyEl.insertBefore(chip, historyEl.firstChild);
+    }
+
+    pickBtn.addEventListener('click', pickRandom);
+    surpriseBtn.addEventListener('click', ()=>{ pickRandom(); });
+
+    copyBtn.addEventListener('click', ()=>{
+      const txt = resultEl.textContent || '';
+      navigator.clipboard.writeText(txt).then(()=>{
+        copyBtn.textContent='Copiato!'; setTimeout(()=>copyBtn.textContent='Copia',900);
+      });
+    });
+
+    downloadBtn.addEventListener('click', ()=>{
+      const blob = new Blob([ambienti.join('\n')],{type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '100-ambienti.txt';
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+
+    searchInput.addEventListener('input', (e)=> renderList(e.target.value));
+
+    document.addEventListener('keydown',(e)=>{ if(e.code==='Space'){ e.preventDefault(); pickRandom(); }});
+
+    renderList();
+  </script>
+</body>
+</html>
